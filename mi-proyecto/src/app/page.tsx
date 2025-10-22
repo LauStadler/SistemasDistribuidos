@@ -1,90 +1,78 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
+import Link from "next/link";
 
 export default function PokemonList() {
   const [pokemons, setPokemons] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAllPokemons = async () => {
-      try {
-        // Fetch lista de 20 pokemons
-        const response = await axios.get("https://pokeapi.co/api/v2/pokemon?limit=20");
-        const results = response.data.results;
-
-        // Fetch detalles de cada pokemon
-        const promises = results.map((p: any) => axios.get(p.url));
-        const responses = await Promise.all(promises);
-        const fullData = responses.map(res => res.data);
-
-        setPokemons(fullData);
-      } catch (error) {
-        console.error("Error al obtener pokemons:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllPokemons();
+    async function fetchData() {
+      const res = await axios.get("https://pokeapi.co/api/v2/pokemon?limit=20");
+      const results = await Promise.all(
+        res.data.results.map(async (p: any) => {
+          const detail = await axios.get(p.url);
+          return {
+            name: p.name,
+            sprite: detail.data.sprites.front_default,
+          };
+        })
+      );
+      setPokemons(results);
+    }
+    fetchData();
   }, []);
 
-  if (loading) {
-    return <p style={{ textAlign: "center", fontSize: "18px" }}>Cargando pokemons...</p>;
-  }
-
   return (
-    <div style={{ maxWidth: "500px", margin: "0 auto", padding: "20px" }}>
-      <h1 className="text-4xl font-bold mb-4" style={{ textAlign: "center", marginBottom: "20px" }}>Lista de Pokemons</h1>
-      {pokemons.map((pokemon) => (
-        <PokemonItem key={pokemon.name} pokemon={pokemon} />
-      ))}
-    </div>
-  );
-}
-
-// PokemonItem solo renderiza, nunca hace fetch
-function PokemonItem({ pokemon }: { pokemon: any }) {
-  const [clicks, setClicks] = useState(0);
-
-  // Placeholder por si no hay sprite
-  const sprite = pokemon.sprites?.front_default || "/placeholder.png";
-
-  return (
-    <button
-      onClick={() => setClicks(clicks + 1)}
+    <div
       style={{
-        display: "block",
-        width: "100%",
-        margin: "8px 0",
-        padding: "12px",
-        border: "none",
-        borderRadius: "6px",
-        background: "#2c3e50",
-        color: "#ecf0f1",
-        cursor: "pointer",
-        textAlign: "left",
+        backgroundColor: "#1e272e",
+        minHeight: "100vh",
+        padding: "20px",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        <img
-          src={sprite}
-          alt={pokemon.name}
-          width={60}
-          height={60}
-          style={{ imageRendering: "pixelated" }}
-        />
-        <div>
-          <p style={{ margin: 0, fontWeight: "bold", fontSize: "18px" }}>{pokemon.name}</p>
-          <p style={{ margin: "2px 0", fontSize: "14px" }}>
-            Altura: {pokemon.height} | Peso: {pokemon.weight}
-          </p>
-          <p style={{ margin: "2px 0", fontSize: "12px", color: "#bdc3c7" }}>
-            Usado {clicks} veces
-          </p>
-        </div>
+      <h1
+        style={{
+          textAlign: "center",
+          color: "#ecf0f1",
+          fontSize: "2rem",
+          marginBottom: "20px",
+        }}
+      >
+        Lista de Pokemons
+      </h1>
+
+      <div style={{ maxWidth: "500px", margin: "0 auto" }}>
+        {pokemons.map((p) => (
+          <Link
+            key={p.name}
+            href={`/pokemon/${p.name}`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              backgroundColor: "#2f3640",
+              color: "#f5f6fa",
+              borderRadius: "8px",
+              padding: "12px",
+              marginBottom: "10px",
+              textDecoration: "none",
+              transition: "background 0.3s, transform 0.2s",
+            }}
+          >
+            <img
+              src={p.sprite}
+              alt={p.name}
+              width={60}
+              height={60}
+              style={{ imageRendering: "pixelated" }}
+            />
+            <p style={{ margin: 0, fontSize: "18px", textTransform: "capitalize" }}>
+              {p.name}
+            </p>
+          </Link>
+        ))}
       </div>
-    </button>
+    </div>
   );
 }
