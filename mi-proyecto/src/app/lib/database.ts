@@ -4,8 +4,8 @@ import path from "path";
 const DB_PATH = path.join(process.cwd(), "database.json");
 
 export interface Pokemon {
-  id: number;
   name: string;
+  id: number;
   height: number;
   weight: number;
 }
@@ -34,10 +34,9 @@ class Database {
     return data.find((item) => item.id === id);
   }
 
-  async create(pokemon: Omit<Pokemon, "id">): Promise<Pokemon> {
+  async create(pokemon: Pokemon): Promise<Pokemon> {
     const data = await this.readDB();
     const newProduct: Pokemon = {
-      id: data.length > 0 ? Math.max(...data.map((p) => p.id)) + 1 : 1,
       ...pokemon
     };
     data.push(newProduct);

@@ -1,41 +1,48 @@
-// app/services/favorites.service.ts
+// src/app/services/favorites.service.ts
 import { Pokemon } from "@/app/lib/database";
 
+const API_BASE = "/api/favorites";
+
 export const favoritesService = {
-  // Obtener todos los pokémon favoritos
+  
   getAll: async (): Promise<Pokemon[]> => {
-    const res = await fetch("/api/favorites");
-
-    if (!res.ok) throw new Error("Error al obtener los favoritos");
-
+    const res = await fetch(API_BASE, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
+     });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      let message = "Error al obtener favoritos";
+      throw new Error(message);
+    }
     return res.json();
   },
 
-  // Agregar un pokémon a favoritos
+  // 🔹 Agregar un favorito
   create: async (pokemon: Pokemon): Promise<Pokemon> => {
-    const res = await fetch("/api/favorites", {
+    const res = await fetch(API_BASE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pokemon),
     });
 
     if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      throw new Error(error.error || "Error al agregar a favoritos");
+      const errorData = await res.json().catch(() => ({}));
+      let message = "Error al agregar a favoritos";
+      throw new Error(message);
     }
 
     return res.json();
   },
 
-  // Eliminar un pokémon de favoritos por id
+  // 🔹 Eliminar un favorito por ID
   delete: async (id: number): Promise<void> => {
-    const res = await fetch(`/api/favorites/${id}`, {
-      method: "DELETE",
-    });
-
+    const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
     if (!res.ok) {
-      const error = await res.json().catch(() => ({}));
-      throw new Error(error.error || "Error al eliminar de favoritos");
+      const errorData = await res.json().catch(() => ({}));
+      let message = "Error al eliminar favorito";
+
+      throw new Error(message);
     }
   },
 };

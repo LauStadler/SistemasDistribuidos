@@ -9,7 +9,7 @@ export function useAddFavorite() {
   return useMutation({
     mutationFn: (pokemon: Pokemon) => favoritesService.create(pokemon),
     onSuccess: () => {
-      // 🔥 Versión actual de TanStack Query (v5)
+  
       queryClient.invalidateQueries({ queryKey: ["favorites"] });
     },
     onError: (error) => {

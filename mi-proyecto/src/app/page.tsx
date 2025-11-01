@@ -11,7 +11,7 @@ import { favoritesService } from "@/app/services/favorites.service";
 import { Heart } from "lucide-react"; 
 import { Pokemon } from "@/app/lib/database";
 
-type BasicPokemon = { name: string; sprite: string | null };
+type BasicPokemon = { name: string; sprite: string | null; id: number; height: number; weight: number;};
 
 // 🔹 Función para traer pokemons desde la API de PokeAPI
 async function fetchPokemonPage(limit: number, offset: number): Promise<BasicPokemon[]> {
@@ -22,7 +22,12 @@ async function fetchPokemonPage(limit: number, offset: number): Promise<BasicPok
     results.map(async (r) => {
       const det = await axios.get(r.url);
       const sprite = det.data.sprites.front_default || null;
-      return { name: r.name, sprite } as BasicPokemon;
+      return { name: r.name,
+        sprite,
+        id: det.data.id,
+        height: det.data.height,
+        weight: det.data.weight,
+      } as BasicPokemon & { height: number; weight: number };
     })
   );
 
@@ -52,11 +57,24 @@ export default function PokemonListPage() {
 
   const isFavorite = (name: string) => favorites.some((f) => f.name === name);
 
-  const handleToggleFavorite = async (p: BasicPokemon) => {
-    const fav = favorites.find((f) => f.name === p.name);
-    if (fav) removeFavorite.mutate(fav.id);
-    else addFavorite.mutate({ id: 0, name: p.name, height: 0, weight: 0 });
-  };
+ const handleToggleFavorite = async (p: BasicPokemon) => {
+  try {
+    const fav = favorites.find((f: Pokemon) => f.name === p.name);
+
+    if (fav) {
+      removeFavorite.mutate(fav.id);
+    } else {
+      addFavorite.mutate({
+        name: p.name,
+        id: p.id,
+        height: p.height,
+        weight: p.weight,
+      });
+    }
+  } catch (error) {
+    console.error("Error al modificar favoritos", error);
+  }
+};
 
   // 🔹 Filtrar según si se muestran solo favoritos
   const displayList = showFavorites

@@ -4,16 +4,17 @@ import { db } from "@/app/lib/database";
 // DELETE /api/favorites/[id]
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id } = await context.params; 
 
-    if (isNaN(id)) {
+    const numId = parseInt(id);
+    if (isNaN(numId)) {
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
     }
 
-    const deleted = await db.delete(id);
+    const deleted = await db.delete(numId);
     if (!deleted) {
       return NextResponse.json({ error: "Pokémon no encontrado" }, { status: 404 });
     }
@@ -24,3 +25,4 @@ export async function DELETE(
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
+

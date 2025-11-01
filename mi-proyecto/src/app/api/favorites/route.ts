@@ -15,7 +15,8 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, height, weight } = body;
+    const { name, id, height, weight } = body;
+    console.error({ name, id, height, weight });
 
     if (!name || !height || !weight) {
       return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
@@ -27,10 +28,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "El Pokémon ya está en favoritos" }, { status: 409 });
     }
 
-    const newPokemon = await db.create({ name, height, weight });
+    const newPokemon = await db.create({ name, id, height, weight });
     return NextResponse.json(newPokemon, { status: 201 });
   } catch (error) {
     console.error("Error al agregar favorito:", error);
+    console.log("dio error la rta de la base de datos");
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
